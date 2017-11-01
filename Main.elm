@@ -8,6 +8,8 @@ import Bootstrap.Grid.Row as Row
 import Date exposing (..)
 import List
 
+import Types exposing(..)
+import JobDescription exposing (..)
 
 main : Program Never Model Msg
 main =
@@ -19,30 +21,24 @@ main =
         }
 
 
-type alias Job =
-    { start : Date
-    , end : Date
-    , employer : String
-    , title : String
-    , tasks : List String
-    }
+-- type alias Job =
+--     { start : Date
+--     , end : Date
+--     , employer : String
+--     , title : String
+--     , tasks : List String
+--     }
 
 
 type alias Model =
-    { jobs : Job
-    }
+    { jobs : Job    }
 
-createDate: String -> Date
-createDate str =
-    fromString str |> Result.withDefault (Date.fromTime 0)
 
 init : ( Model, Cmd Msg )
 init =
     ( Model (Job (createDate "1.1.2004") (createDate "31.12.2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"]), Cmd.none )
 
 
-type Msg
-    = Msg1
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,28 +58,6 @@ view model =
         --     ]
         , jobDescription model.jobs
         ]
-
-
-
-jobDescription : Job -> Html Msg
-jobDescription job =
-    let 
-        entry:String -> Html Msg
-        entry task = li [] [text task]
-
-        
-    in
-        Grid.row []
-            [ Grid.col 
-                [ Col.md9, Col.pushMd3 ]
-                [ text (job.title ++ " bei " ++ job.employer)
-                , ul [] (List.map entry job.tasks)
-                ]
-            , Grid.col
-                [Col.md3, Col.pullMd9]
-                [text "zeit"]
-            ]
-
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
