@@ -36,7 +36,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model (Job (createDate "1.1.2004") (createDate "31.12.2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"]), Cmd.none )
+    ( Model (Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"]), Cmd.none )
 
 
 
@@ -52,11 +52,7 @@ view : Model -> Html Msg
 view model =
     Grid.container []
         [ CDN.stylesheet
-        -- , Grid.row []
-        --     [ Grid.col []
-        --         [ text (model.jobs.title ++ " bei " ++ model.jobs.employer) ]
-        --     ]
-        , jobDescription model.jobs
+        , jobDescription 0 model.jobs
         ]
 
 subscriptions : Model -> Sub Msg
