@@ -8,7 +8,6 @@ import Bootstrap.Grid.Row as Row
 import Date exposing (..)
 import List
 
-import Types exposing(..)
 import JobDescription exposing (..)
 
 main : Program Never Model Msg
@@ -20,6 +19,9 @@ main =
         , subscriptions = subscriptions
         }
 
+createDate: String -> Date
+createDate str =
+    fromString str |> Result.withDefault (Date.fromTime 0)
 
 -- type alias Job =
 --     { start : Date
@@ -28,6 +30,10 @@ main =
 --     , title : String
 --     , tasks : List String
 --     }
+
+type Msg
+    = Msg1
+    | JobMsg JobDescription.Msg
 
 
 type alias Model =
@@ -47,12 +53,15 @@ update msg model =
         Msg1 ->
             ( model, Cmd.none )
 
+        JobMsg msg ->
+            ( model, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
     Grid.container []
         [ CDN.stylesheet
-        , jobDescription 0 model.jobs
+        , Html.map JobMsg (jobDescription 0 model.jobs)
         ]
 
 subscriptions : Model -> Sub Msg
