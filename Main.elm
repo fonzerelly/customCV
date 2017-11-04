@@ -6,6 +6,7 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
 import Date exposing (..)
+import Task
 import List
 
 import JobDescription exposing (..)
@@ -23,27 +24,27 @@ createDate: String -> Date
 createDate str =
     fromString str |> Result.withDefault (Date.fromTime 0)
 
--- type alias Job =
---     { start : Date
---     , end : Date
---     , employer : String
---     , title : String
---     , tasks : List String
---     }
-
 type Msg
     = Msg1
+    | SetDate (Maybe Date)
     | JobMsg JobDescription.Msg
 
 
 type alias Model =
-    { jobs : Job    }
+    { jobs : Job
+    , currentDate: Maybe Date
+    }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model (Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"]), Cmd.none )
+    ( Model
+        (Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"])
+        Nothing
+    , now )
 
+now : Cmd Msg
+now = Task.perform (Just >> SetDate) Date.now
 
 
 
@@ -56,12 +57,17 @@ update msg model =
         JobMsg msg ->
             ( model, Cmd.none )
 
+        SetDate date ->
+            ( {model | currentDate = date}, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
     Grid.container []
         [ CDN.stylesheet
-        , Html.map JobMsg (jobDescription 0 model.jobs)
+        , case model.currentDate of
+            Just date -> Html.map JobMsg (jobDescription date model.jobs)
+            Nothing -> text ""
         ]
 
 subscriptions : Model -> Sub Msg

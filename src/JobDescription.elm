@@ -6,9 +6,9 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
 
-import Date exposing (Date, year, Month, month)
+import Date exposing (Date, year, Month, month, day)
 import Date.Extra.Facts exposing (monthNumberFromMonth)
--- import Time.DateTime (DateTimeDelta, )
+import Time.DateTime exposing (DateTimeDelta, setDate, delta, zero, dateTime, DateTime)
 
 type alias Job =
     { start : Date
@@ -38,8 +38,8 @@ type Msg = Init
 --         Init ->
 --             (model, Cmd.none)
 
-jobDescription : Int -> Job -> Html Msg
-jobDescription yearsPassedSince job =
+jobDescription : Date -> Job -> Html Msg
+jobDescription currentDate job =
     let 
         entry:String -> Html Msg
         entry task = li [] [text task]
@@ -47,9 +47,9 @@ jobDescription yearsPassedSince job =
         yearToString: Date -> String
         yearToString = toString << year
 
-        concatDates: (Date -> String) -> Date -> Date -> String
-        concatDates dateToStrFn start end =
-            (dateToStrFn start) ++ " - " ++ (dateToStrFn end)
+        concatByDash: String -> String -> String
+        concatByDash start end =
+            start ++ " - " ++ end
 
         monthYearToString: Date -> String
         monthYearToString d =
@@ -63,7 +63,16 @@ jobDescription yearsPassedSince job =
             in
                 (monthToString <| month d) ++ "/" ++ (yearToString d)
 
-        timeFn = if (yearsPassedSince > 2) then concatDates yearToString else concatDates monthYearToString
+        toDateTime: Date -> DateTime
+        toDateTime date = dateTime { zero| year = (year date), month = (monthNumberFromMonth <| month date), day = (day date) }
+
+
+        formatDate: Date -> String
+        formatDate date =
+            let
+               deltaSinceDate = delta (toDateTime currentDate) (toDateTime date)
+            in
+                if deltaSinceDate.months > 12 then yearToString date else monthYearToString date
     in
         Grid.row []
             [ Grid.col 
@@ -73,5 +82,5 @@ jobDescription yearsPassedSince job =
                 ]
             , Grid.col
                 [ Col.md3, Col.pullMd9 ]
-                [ text <| timeFn job.start job.end ]
+                [ text <| (concatByDash (formatDate job.start) (formatDate job.end)) ]
             ]
