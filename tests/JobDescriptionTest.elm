@@ -43,6 +43,13 @@ suite =
                         |> Query.find [ classes ["col-md-3", "pull-md-9"] ]
                         |> Query.has [text "10/2008 - 12/2008"]
                 ]
+            , describe "when job ends at the same date as the currentDate" <|
+                [ test "should render \"heute\" instead of date" <|
+                    \_ -> jobDescription (createDate "12/31/2008") job
+                        |> Query.fromHtml
+                        |> Query.find [ classes ["col-md-3", "pull-md-9"] ]
+                        |> Query.has [text "2004 - heute"]
+                ]
             ]
         , test "should combine employer and title" <|
             \_ -> jobDescriptionWhereTimeDoesNotMatter job

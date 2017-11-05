@@ -66,13 +66,15 @@ jobDescription currentDate job =
         toDateTime: Date -> DateTime
         toDateTime date = dateTime { zero| year = (year date), month = (monthNumberFromMonth <| month date), day = (day date) }
 
-
         formatDate: Date -> String
         formatDate date =
             let
                deltaSinceDate = delta (toDateTime currentDate) (toDateTime date)
             in
-                if deltaSinceDate.months > 12 then yearToString date else monthYearToString date
+                if ( date == currentDate ) then
+                    "heute"
+                else
+                    if deltaSinceDate.months > 12 then yearToString date else monthYearToString date
     in
         Grid.row []
             [ Grid.col 
