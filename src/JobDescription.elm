@@ -9,6 +9,8 @@ import Bootstrap.Grid.Row as Row
 import Date exposing (Date, year, Month, month, day)
 import Date.Extra.Facts exposing (monthNumberFromMonth)
 import Time.DateTime exposing (DateTimeDelta, setDate, delta, zero, dateTime, DateTime)
+import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (..)
 
 type alias Job =
     { start : Date
@@ -86,3 +88,30 @@ jobDescription currentDate job =
                 [ Col.md3, Col.pullMd9 ]
                 [ text <| (concatByDash (formatDate job.start) (formatDate job.end)) ]
             ]
+
+
+
+createJobDecoder : Date -> Decode.Decoder Job
+createJobDecoder currentDate =
+    let
+    
+        date : Decode.Decoder Date
+        date =
+            let
+                convert : String -> Decode.Decoder Date
+                convert raw =
+                    case Date.fromString raw of
+                        Ok date ->
+                            Decode.succeed date
+
+                        Err error ->
+                            Decode.fail error
+            in
+                Decode.string |> Decode.andThen convert
+    in
+    decode Job
+        |> required "start" date
+        |> optional "end" date currentDate
+        |> required "employer" Decode.string
+        |> required "title" Decode.string
+        |> required "tasks" (Decode.list Decode.string)

@@ -27,35 +27,42 @@ createDate str =
     fromString str |> Result.withDefault (Date.fromTime 0)
 
 type Msg
-    = DataLoaded (Result Http.Error String)
+    = DataLoaded (Result Http.Error Job)
     | SetDate (Maybe Date)
     | JobMsg JobDescription.Msg
 
 
 type alias Model =
-    { jobs : Job
-    , currentDate: Maybe Date
-    , data: String
+    { currentDate: Maybe Date
+    , jobs : Job
+    , err: String
     }
 
 decodeData : Decode.Decoder String
-decodeData = Decode.at["employer"] Decode.string
+decodeData = Decode.string
 
-fetchData : Cmd Msg
-fetchData =
-    Http.send DataLoaded (Http.get "data/curriculum-vitae.json" decodeData)
+fetchData : Date -> Cmd Msg
+fetchData currentDate =
+    let
+        decoder = createJobDecoder currentDate
+        request: Http.Request Job 
+        request = Http.get "data/curriculum-vitae.json" decoder
+    in
+        Http.send DataLoaded request
 
+
+dummyJob = Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"]
 
 init : ( Model, Cmd Msg )
 init =
     let
         model =  Model
-            (Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"])
             Nothing
-            "dummy data"
+            dummyJob
+            ""
 
     in
-        (model, (batch [now, fetchData]))
+        (model, now)
 
 now : Cmd Msg
 now = Task.perform (Just >> SetDate) Date.now
@@ -63,18 +70,21 @@ now = Task.perform (Just >> SetDate) Date.now
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        DataLoaded (Ok data) ->
-            ( { model | data = data }, Cmd.none )
+        DataLoaded (Ok job) ->
+            ( {model| jobs = job}, Cmd.none )
 
-        DataLoaded (Err _) ->
-            ( { model | data = "Loading Data failed!" }, Cmd.none )
+        DataLoaded (Err error) ->
+            ( {model| err = (toString error)}, Cmd.none )
 
         JobMsg msg ->
             ( model, Cmd.none )
 
-        SetDate date ->
-            ( {model | currentDate = date}, Cmd.none )
-
+        SetDate maybeDate ->
+            case maybeDate of
+                Just date -> 
+                    ( {model| currentDate = maybeDate}, fetchData date)
+                Nothing ->
+                    (model, Cmd.none)
 
 view : Model -> Html Msg
 view model =
@@ -83,7 +93,7 @@ view model =
         , case model.currentDate of
             Just date -> Html.map JobMsg (jobDescription date model.jobs)
             Nothing -> text ""
-        , text model.data
+        , text <| toString model.currentDate
         ]
 
 subscriptions : Model -> Sub Msg
