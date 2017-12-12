@@ -31,18 +31,14 @@ createDate str =
 
 
 type Msg
-    = DataLoaded (Result Http.Error Job)
+    = JobsLoaded (Result Http.Error (List Job))
     | SetDate (Maybe Date)
     | JobMsg JobDescription.Msg
 
 
 
--- Todo:
--- So what we need is the Date in combination with the application data in the model
 -- Therefore we sould combine it as type and return this type from the
 -- triggerCollectingJobs Tirade
--- by the way renaming the functions from Stefan would also be better...
--- and not to forget - we need a way to map over the list of applications
 
 
 type alias Model =
@@ -59,8 +55,14 @@ triggerCollectingJobs =
             Debug.log "triggerCollectingJobs" "###"
     in
         Task.map2 (,) (loadApplication "datev") Date.now
-            |> Task.andThen loadJob
-            |> Task.attempt DataLoaded
+            |> Task.andThen createJobTasks
+            -- |> Task.sequence
+            |> Task.attempt JobsLoaded
+
+
+createJobTasks : ( JobApplication, Date ) -> (Task.Task Http.Error (List Job))
+createJobTasks ( application, date ) =
+    Task.sequence ( List.map (loadJob date) application.jobLinks )
 
 
 loadApplication : String -> Task.Task Http.Error JobApplication
@@ -78,25 +80,11 @@ dummyJob =
     Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" [ "Spracherkennung", "Oberflächenprogrammierung mit C++" ]
 
 
-loadJob : ( JobApplication, Date.Date ) -> Task.Task Http.Error Job
-loadJob ( application, date ) =
-    let
-        -- proof that job is loaded from the applications list
-        -- jobUrl = case (((List.drop 1)>> List.head) application.jobLinks) of
-        jobUrl =
-            case (List.head application.jobLinks) of
-                Just url ->
-                    url
-
-                Nothing ->
-                    ""
-
-        _ =
-            Debug.log "loadJob" (toString application) ++ (toString date)
-    in
-        createJobDecoder date
-            |> Http.get jobUrl
-            |> Http.toTask
+loadJob : Date.Date -> String -> Task.Task Http.Error Job
+loadJob date jobUrl =
+    createJobDecoder date
+        |> Http.get jobUrl
+        |> Http.toTask
 
 
 init : ( Model, Cmd Msg )
@@ -126,15 +114,15 @@ update msg model =
             Debug.log "update msg: " <| (toString msg)
     in
         case msg of
-            DataLoaded (Ok job) ->
-                ( { model | jobs = List.append model.jobs [ job ] }, Cmd.none )
+            JobsLoaded (Ok jobs) ->
+                ( { model | jobs = jobs }, Cmd.none )
 
-            DataLoaded (Err error) ->
-                ( { model | err = (toString error) }, Cmd.none )
-
+            JobsLoaded (Err errors) ->
+                ( { model | err = (toString errors) }, Cmd.none )
+                
             JobMsg msg ->
                 ( model, Cmd.none )
-
+                
             SetDate maybeDate ->
                 ( { model | currentDate = maybeDate }, Cmd.none )
 
