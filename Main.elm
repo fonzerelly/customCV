@@ -11,7 +11,9 @@ import Task
 import List
 import Json.Decode as Decode
 import JobDescription exposing (..)
+import JobApplication exposing (..)
 import Platform.Cmd exposing (..)
+
 
 main : Program Never Model Msg
 main =
@@ -22,9 +24,11 @@ main =
         , subscriptions = subscriptions
         }
 
-createDate: String -> Date
+
+createDate : String -> Date
 createDate str =
     fromString str |> Result.withDefault (Date.fromTime 0)
+
 
 type Msg
     = DataLoaded (Result Http.Error Job)
@@ -32,69 +36,122 @@ type Msg
     | JobMsg JobDescription.Msg
 
 
+
+-- Todo:
+-- So what we need is the Date in combination with the application data in the model
+-- Therefore we sould combine it as type and return this type from the
+-- triggerCollectingJobs Tirade
+-- by the way renaming the functions from Stefan would also be better...
+-- and not to forget - we need a way to map over the list of applications
+
+
 type alias Model =
-    { currentDate: Maybe Date
-    , jobs : Job
-    , err: String
+    { currentDate : Maybe Date
+    , jobs : List Job
+    , err : String
     }
 
-decodeData : Decode.Decoder String
-decodeData = Decode.string
 
-fetchData : Date -> Cmd Msg
-fetchData currentDate =
+triggerCollectingJobs : Cmd Msg
+triggerCollectingJobs =
     let
-        decoder = createJobDecoder currentDate
-        request: Http.Request Job 
-        request = Http.get "data/curriculum-vitae.json" decoder
+        _ =
+            Debug.log "triggerCollectingJobs" "###"
     in
-        Http.send DataLoaded request
+        Task.map2 (,) (loadApplication "datev") Date.now
+            |> Task.andThen loadJob
+            |> Task.attempt DataLoaded
 
 
-dummyJob = Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" ["Spracherkennung", "Oberflächenprogrammierung mit C++"]
+loadApplication : String -> Task.Task Http.Error JobApplication
+loadApplication application =
+    let
+        _ =
+            Debug.log "loadApplication" application
+    in
+        applicationDecoder
+            |> Http.get ("data/application/" ++ application ++ ".json")
+            |> Http.toTask
+
+
+dummyJob =
+    Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" [ "Spracherkennung", "Oberflächenprogrammierung mit C++" ]
+
+
+loadJob : ( JobApplication, Date.Date ) -> Task.Task Http.Error Job
+loadJob ( application, date ) =
+    let
+        -- proof that job is loaded from the applications list
+        -- jobUrl = case (((List.drop 1)>> List.head) application.jobLinks) of
+        jobUrl =
+            case (List.head application.jobLinks) of
+                Just url ->
+                    url
+
+                Nothing ->
+                    ""
+
+        _ =
+            Debug.log "loadJob" (toString application) ++ (toString date)
+    in
+        createJobDecoder date
+            |> Http.get jobUrl
+            |> Http.toTask
+
 
 init : ( Model, Cmd Msg )
 init =
     let
-        model =  Model
-            Nothing
-            dummyJob
-            ""
+        model =
+            Model
+                Nothing
+                []
+                ""
 
+        _ =
+            Debug.log "INIT" "nothing"
     in
-        (model, now)
+        ( model, batch [ now, triggerCollectingJobs ] )
+
 
 now : Cmd Msg
-now = Task.perform (Just >> SetDate) Date.now
+now =
+    Task.perform (Just >> SetDate) Date.now
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        DataLoaded (Ok job) ->
-            ( {model| jobs = job}, Cmd.none )
+    let
+        _ =
+            Debug.log "update msg: " <| (toString msg)
+    in
+        case msg of
+            DataLoaded (Ok job) ->
+                ( { model | jobs = List.append model.jobs [ job ] }, Cmd.none )
 
-        DataLoaded (Err error) ->
-            ( {model| err = (toString error)}, Cmd.none )
+            DataLoaded (Err error) ->
+                ( { model | err = (toString error) }, Cmd.none )
 
-        JobMsg msg ->
-            ( model, Cmd.none )
+            JobMsg msg ->
+                ( model, Cmd.none )
 
-        SetDate maybeDate ->
-            case maybeDate of
-                Just date -> 
-                    ( {model| currentDate = maybeDate}, fetchData date)
-                Nothing ->
-                    (model, Cmd.none)
+            SetDate maybeDate ->
+                ( { model | currentDate = maybeDate }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
     Grid.container []
         [ CDN.stylesheet
         , case model.currentDate of
-            Just date -> Html.map JobMsg (jobDescription date model.jobs)
-            Nothing -> text ""
+            Just date ->
+                Html.map JobMsg (div [] (List.map (jobDescription date) model.jobs))
+
+            Nothing ->
+                text ""
         , text <| toString model.currentDate
         ]
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
