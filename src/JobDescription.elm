@@ -1,13 +1,9 @@
 module JobDescription exposing (..)
 
 import Html exposing (..)
-import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
-import Bootstrap.Grid.Row as Row
-import Date exposing (Date, year, Month, month, day)
-import Date.Extra.Facts exposing (monthNumberFromMonth)
-import Time.DateTime exposing (DateTimeDelta, setDate, delta, zero, dateTime, DateTime)
+import Date exposing (Date)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (..)
 import Timespan exposing (..)

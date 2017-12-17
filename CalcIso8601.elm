@@ -15,7 +15,7 @@ createDate str =
 
 initialModel: Model
 initialModel = 
-    { date= createDate "12/31/2008"
+    { date= createDate "09/30/2004"
     }
 
 view model =
