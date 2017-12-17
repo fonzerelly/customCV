@@ -16,47 +16,60 @@ suite =
 
         timespan = Timespan (createDate "1/1/2004") (createDate "12/31/2008")
     in
-        describe "renderTimespan" 
-        [
-            describe "when Timespan is older than 12 months"
-            [ test "should render start year dash end year" <|
-                \_ ->
-                    let
-                        currentDate = createDate "03/20/2010"
+        describe "Timespan"
+        [ describe "renderTimespan" 
+            [
+                describe "when Timespan is older than 12 months"
+                [ test "should render start year dash end year" <|
+                    \_ ->
+                        let
+                            currentDate = createDate "03/20/2010"
 
-                    in
-                        Expect.equal "2004 - 2008" 
-                            (renderTimespan currentDate timespan)
-            ],
+                        in
+                            Expect.equal "2004 - 2008" 
+                                (renderTimespan currentDate timespan)
+                ],
 
-            describe "when Timespan is younger than 12 months"
-            [ test "should render month and year for latest start and end" <|
-                \_->
-                    let
-                        currentDate = createDate "03/20/2009"
-                    in
-                        Expect.equal "2004 - 12/2008"
-                            (renderTimespan currentDate timespan)
-            ],
+                describe "when Timespan is younger than 12 months"
+                [ test "should render month and year for latest start and end" <|
+                    \_->
+                        let
+                            currentDate = createDate "03/20/2009"
+                        in
+                            Expect.equal "2004 - 12/2008"
+                                (renderTimespan currentDate timespan)
+                ],
 
-            describe "when Timespan was shorter than 12 months"
-            [ test "should render month and year for each date" <|
-                \_ -> 
-                    let
-                        currentDate = createDate "03/20/2009"
-                        startDate = createDate "10/01/2008"
-                    in
-                        Expect.equal "10/2008 - 12/2008"
-                            (renderTimespan currentDate (Timespan startDate (createDate "12/31/2008")))
-            ],
+                describe "when Timespan was shorter than 12 months"
+                [ test "should render month and year for each date" <|
+                    \_ -> 
+                        let
+                            currentDate = createDate "03/20/2009"
+                            startDate = createDate "10/01/2008"
+                        in
+                            Expect.equal "10/2008 - 12/2008"
+                                (renderTimespan currentDate (Timespan startDate (createDate "12/31/2008")))
+                ],
 
-            describe "when Timespan ends at the same date as the currentDate" <|
-            [ test "should render \"heute\" instead of date" <|
-                \_ -> 
-                    let
-                        currentDate = createDate "12/31/2008"
-                    in
-                        Expect.equal "2004 - heute"
-                            (renderTimespan currentDate timespan)
+                describe "when Timespan ends at the same date as the currentDate" <|
+                [ test "should render \"heute\" instead of date" <|
+                    \_ -> 
+                        let
+                            currentDate = createDate "12/31/2008"
+                        in
+                            Expect.equal "2004 - heute"
+                                (renderTimespan currentDate timespan)
+                ]
+            ]
+        , describe "renderTimespan2" <|
+            [ describe "when Timespan end is Nothing" <|
+                [ test "should render \"heute\" instead of date" <|
+                    \_ ->
+                        let
+                            currentDate = createDate "12/31/2008"
+                        in
+                            Expect.equal "2004 - heute"
+                                (renderTimespan2 currentDate {timespan| end = Maybe.Nothing})
+                ]
             ]
         ]
