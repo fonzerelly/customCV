@@ -18,6 +18,9 @@ suite =
             "jobLinks": [
                 "data/job/navigon.json",
                 "data/job/elektrobit.json"
+            ],
+            "educationLinks": [
+                "data/education/tu-ilmenau.json"
             ]
         }
         """
@@ -28,5 +31,12 @@ suite =
                     case Decode.decodeString applicationDecoder applicationJson of
                         Ok app -> Expect.equal app.jobLinks ["data/job/navigon.json", "data/job/elektrobit.json"] 
                         Err err -> Expect.fail ("Decoding application failed due to: " ++ (toString err))
+            
+            , test "should provide a list of urls to educations" <|
+                \_ ->
+                    case Decode.decodeString applicationDecoder applicationJson of
+                        Ok app -> Expect.equal app.educationLinks ["data/education/tu-ilmenau.json"] 
+                        Err err -> Expect.fail ("Decoding application failed due to: " ++ (toString err))
+            
             ]
 

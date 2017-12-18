@@ -2,13 +2,10 @@ module Education exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (style)
-import Bootstrap.CDN as CDN
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
-import Date exposing (Date, year, Month, month, day)
-import Date.Extra.Facts exposing (monthNumberFromMonth)
-import Time.DateTime exposing (DateTimeDelta, setDate, delta, zero, dateTime, DateTime)
+import Date exposing (Date)
 import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (..)
 import Timespan exposing (..)
@@ -132,37 +129,19 @@ educationView currentDate education =
             in
                 kind ++ ": " ++ work.title
 
-        -- Need a way to concat existing rows with work rows
-        -- map over work rows by renderWork >> simpleRow
     in
         Grid.row [] 
         [ Grid.col [ Col.md9, Col.pushMd3 ]
             [ Grid.container []
-                [ simpleRow ( education.course ++ " an der " ++ education.site )
-                , simpleRow ( "Abschluß: " ++ education.graduation ++ ", Note: " ++ ( toString education.grade ) )
-                , defaultRow [ marginBottom1 ] ( "Schwerpunkte: " ++ focals)
-                , defaultRow [ marginTop1 ] ""
-                ]
+                (List.append 
+                    [ simpleRow ( education.course ++ " an der " ++ education.site )
+                    , simpleRow ( "Abschluß: " ++ education.graduation ++ ", Note: " ++ ( toString education.grade ) )
+                    , defaultRow [ marginBottom1 ] ( "Schwerpunkte: " ++ focals)
+                    , defaultRow [ marginTop1 ] ""
+                    ]
+                    ( List.map (simpleRow << renderWork) education.works )
+                )
             ]
         , Grid.col [Col.md3, Col.pullMd9 ]
             [ text <| renderTimespan2 currentDate timespan]
         ]
-
--- Grid.row []
---             [ Grid.col
---                 [ Col.md9, Col.pushMd3 ]
---                 [ text (job.title ++ " bei " ++ job.employer)
---                 , ul [] (List.map entry job.tasks)
---                 ]
---             , Grid.col
---                 [ Col.md3, Col.pullMd9 ]
---                 [ text <| renderTimespan currentDate timespan ]
---             ]
-
--- jobDescription : Date -> Job -> Html Msg
--- jobDescription currentDate job =
---     let
---         entry : String -> Html Msg
---         entry task =
---             li [] [ text task ]
---         timespan =
