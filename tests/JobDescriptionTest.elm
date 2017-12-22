@@ -23,7 +23,7 @@ suite =
         job =
             (Job
                 (createDate "1/1/2004")
-                (createDate "12/31/2008")
+                (Just <| createDate "12/31/2008")
                 "Navigon AG"
                 "Software-Engineer"
                 [ "Spracherkennung"
@@ -76,9 +76,6 @@ suite =
                 [ test "should decode JobJson into Job datatype" <|
                     \_ ->
                         let
-                            jobDecoder =
-                                createJobDecoder (createDate "12/31/2008")
-
                             jobJson =
                                 """
 {
@@ -102,9 +99,6 @@ suite =
                 , test "should set passed in current date as end date when end date is null" <|
                     \_ ->
                         let
-                            jobDecoder =
-                                createJobDecoder (createDate "03/20/2009")
-
                             jobJson =
                                 """
 {
@@ -121,7 +115,7 @@ suite =
                         in
                             case Decode.decodeString jobDecoder jobJson of
                                 Ok decodedJob ->
-                                    Expect.equal { job | end = createDate "03/20/2009" } decodedJob
+                                    Expect.equal { job | end = Nothing } decodedJob
 
                                 Err error ->
                                     Expect.fail "Decoding JSON as Job with end = null failed"

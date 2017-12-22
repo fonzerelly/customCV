@@ -11,7 +11,7 @@ import Timespan exposing (..)
 
 type alias Job =
     { start : Date
-    , end : Date
+    , end : Maybe Date
     , employer : String
     , title : String
     , tasks : List String
@@ -47,7 +47,7 @@ jobDescription currentDate job =
             li [] [ text task ]
 
         timespan =
-            Timespan job.start job.end
+            Timespan2 job.start job.end
     in
         Grid.row []
             [ Grid.col
@@ -57,12 +57,11 @@ jobDescription currentDate job =
                 ]
             , Grid.col
                 [ Col.md3, Col.pullMd9 ]
-                [ text <| renderTimespan currentDate timespan ]
+                [ text <| renderTimespan2 currentDate timespan ]
             ]
 
-
-createJobDecoder : Date -> Decode.Decoder Job
-createJobDecoder currentDate =
+jobDecoder : Decode.Decoder Job
+jobDecoder =
     let
         date : Decode.Decoder Date
         date =
@@ -80,7 +79,7 @@ createJobDecoder currentDate =
     in
         decode Job
             |> required "start" date
-            |> optional "end" date currentDate
+            |> required "end" (Decode.maybe date)
             |> required "employer" Decode.string
             |> required "title" Decode.string
             |> required "tasks" (Decode.list Decode.string)
