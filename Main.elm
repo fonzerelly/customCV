@@ -33,15 +33,10 @@ createDate str =
 
 type Msg
     = JobsLoaded (Result Http.Error (List Job))
-    | EduLoaded (Result Http.Error (List Education))
+    | EdusLoaded (Result Http.Error (List Education))
     | SetDate (Maybe Date)
     | JobMsg JobDescription.Msg
     | EduMsg Education.Msg
-
-
-
--- Therefore we sould combine it as type and return this type from the
--- triggerCollectingJobs Tirade
 
 
 type alias Model =
@@ -88,8 +83,8 @@ init =
     in
         ( model, batch
             [ now
-            , (triggerCollectingDataFromApplication  EduLoaded .educationLinks educationDecoder)
-
+            , ( triggerCollectingDataFromApplication EdusLoaded .educationLinks educationDecoder )
+            , ( triggerCollectingDataFromApplication JobsLoaded .jobLinks jobDecoder )
             ]
         )
 
@@ -112,13 +107,13 @@ update msg model =
             JobsLoaded (Err errors) ->
                 ( { model | err = (toString errors) }, Cmd.none )
 
-            EduLoaded (Ok edus) ->
+            EdusLoaded (Ok edus) ->
                 let
                     _ = Debug.log "update" (toString edus)
                 in
                     ( { model | edus = edus }, Cmd.none )
 
-            EduLoaded (Err errors) ->
+            EdusLoaded (Err errors) ->
                 ( { model | err = (toString errors) }, Cmd.none )
 
             JobMsg msg ->
