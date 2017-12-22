@@ -2,5 +2,8 @@
     "jobLinks": [
         "data/job/elektrobit.json",
         "data/job/navigon.json"
+    ],
+    "educationLinks": [
+        "data/education/tu-ilmenau.json"
     ]
 }

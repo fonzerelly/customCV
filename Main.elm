@@ -12,6 +12,7 @@ import List
 import Json.Decode as Decode
 import JobDescription exposing (..)
 import JobApplication exposing (..)
+import Education exposing (..)
 import Platform.Cmd exposing (..)
 
 
@@ -32,8 +33,10 @@ createDate str =
 
 type Msg
     = JobsLoaded (Result Http.Error (List Job))
+    | EduLoaded (Result Http.Error (List Education))
     | SetDate (Maybe Date)
     | JobMsg JobDescription.Msg
+    | EduMsg Education.Msg
 
 
 
@@ -44,48 +47,31 @@ type Msg
 type alias Model =
     { currentDate : Maybe Date
     , jobs : List Job
+    , edus : List Education
     , err : String
     }
 
-
-triggerCollectingJobs : Cmd Msg
-triggerCollectingJobs =
+triggerCollectingDataFromApplication msg getter specificDecoder =
     let
-        _ =
-            Debug.log "triggerCollectingJobs" "###"
+        _ = Debug.log "triggerCollectingDataFromApplication" "###"
     in
-        Task.map2 (,) (loadApplication "datev") Date.now
-            |> Task.andThen createJobTasks
-            -- |> Task.sequence
-            |> Task.attempt JobsLoaded
+        loadData applicationDecoder "data/application/datev.json"
+            |> Task.andThen (createDataTasks getter specificDecoder)
+            |> Task.attempt msg
 
-
-createJobTasks : ( JobApplication, Date ) -> (Task.Task Http.Error (List Job))
-createJobTasks ( application, date ) =
-    Task.sequence ( List.map (loadJob date) application.jobLinks )
-
-
-loadApplication : String -> Task.Task Http.Error JobApplication
-loadApplication application =
+createDataTasks : (b -> List String) -> Decode.Decoder a -> b -> Task.Task Error (List a)
+createDataTasks getter specificDecoder application =
     let
-        _ =
-            Debug.log "loadApplication" application
+        _ = Debug.log "createDataTasks" (toString application)
     in
-        applicationDecoder
-            |> Http.get ("data/application/" ++ application ++ ".json")
-            |> Http.toTask
+        Task.sequence ( List.map (loadData specificDecoder) (getter application) )
 
 
-dummyJob =
-    Job (createDate "1/1/2004") (createDate "12/31/2008") "Navigon AG" "Software-Engineer" [ "Spracherkennung", "Oberflächenprogrammierung mit C++" ]
-
-
-loadJob : Date.Date -> String -> Task.Task Http.Error Job
-loadJob date jobUrl =
-    createJobDecoder date
-        |> Http.get jobUrl
+loadData : Decode.Decoder a -> String -> Task.Task Error a
+loadData specificDecoder url =
+    specificDecoder
+        |> Http.get url
         |> Http.toTask
-
 
 init : ( Model, Cmd Msg )
 init =
@@ -94,12 +80,18 @@ init =
             Model
                 Nothing
                 []
+                []
                 ""
 
         _ =
             Debug.log "INIT" "nothing"
     in
-        ( model, batch [ now, triggerCollectingJobs ] )
+        ( model, batch
+            [ now
+            , (triggerCollectingDataFromApplication  EduLoaded .educationLinks educationDecoder)
+
+            ]
+        )
 
 
 now : Cmd Msg
@@ -119,8 +111,20 @@ update msg model =
 
             JobsLoaded (Err errors) ->
                 ( { model | err = (toString errors) }, Cmd.none )
-                
+
+            EduLoaded (Ok edus) ->
+                let
+                    _ = Debug.log "update" (toString edus)
+                in
+                    ( { model | edus = edus }, Cmd.none )
+
+            EduLoaded (Err errors) ->
+                ( { model | err = (toString errors) }, Cmd.none )
+
             JobMsg msg ->
+                ( model, Cmd.none )
+
+            EduMsg msg ->
                 ( model, Cmd.none )
                 
             SetDate maybeDate ->
@@ -134,6 +138,12 @@ view model =
         , case model.currentDate of
             Just date ->
                 Html.map JobMsg (div [] (List.map (jobDescription date) model.jobs))
+
+            Nothing ->
+                text ""
+        , case model.currentDate of
+            Just date ->
+                Html.map EduMsg (div [] (List.map (educationView date) model.edus))
 
             Nothing ->
                 text ""
