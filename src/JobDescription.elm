@@ -47,17 +47,17 @@ jobDescription currentDate job =
             li [] [ text task ]
 
         timespan =
-            Timespan2 job.start job.end
+            Timespan job.start job.end
     in
         Grid.row []
             [ Grid.col
-                [ Col.md9, Col.pushMd3 ]
+                [ Col.xs12, Col.md3 ]
+                [ text <| renderTimespan currentDate timespan ]
+            , Grid.col
+                [ Col.xs12, Col.md9]
                 [ text (job.title ++ " bei " ++ job.employer)
                 , ul [] (List.map entry job.tasks)
                 ]
-            , Grid.col
-                [ Col.md3, Col.pullMd9 ]
-                [ text <| renderTimespan2 currentDate timespan ]
             ]
 
 jobDecoder : Decode.Decoder Job

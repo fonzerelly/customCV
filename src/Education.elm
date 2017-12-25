@@ -110,10 +110,10 @@ educationDecoder =
 educationView : Date -> Education -> Html Msg
 educationView currentDate education =
     let
-        timespan = Timespan2 education.start education.end
+        timespan = Timespan education.start education.end
         defaultRow attr txt = Grid.row attr
             [
-                Grid.col [ Col.md12 ] [text txt]
+                Grid.col [ Col.xs12 ] [text txt]
             ]
         simpleRow = defaultRow []
         focals = String.concat <| List.intersperse ", " education.focals
@@ -130,8 +130,10 @@ educationView currentDate education =
                 kind ++ ": " ++ work.title
 
     in
-        Grid.row [] 
-        [ Grid.col [ Col.md9, Col.pushMd3 ]
+        Grid.row []
+        [ Grid.col [Col.xs12, Col.md3 ]
+            [ text <| renderTimespan currentDate timespan]
+        , Grid.col [ Col.xs12, Col.md9 ]
             [ Grid.container []
                 (List.append 
                     [ simpleRow ( education.course ++ " an der " ++ education.site )
@@ -142,6 +144,4 @@ educationView currentDate education =
                     ( List.map (simpleRow << renderWork) education.works )
                 )
             ]
-        , Grid.col [Col.md3, Col.pullMd9 ]
-            [ text <| renderTimespan2 currentDate timespan]
         ]

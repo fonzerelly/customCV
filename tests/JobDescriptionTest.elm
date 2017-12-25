@@ -37,14 +37,14 @@ suite =
                     \_ ->
                         jobDescription (createDate "03/20/2010") job
                             |> Query.fromHtml
-                            |> Query.find [ classes [ "col-md-3", "pull-md-9" ] ]
+                            |> Query.find [ classes [ "col-12", "col-md-3" ] ]
                             |> Query.has [ text "2004 - 2008" ]
 
                 , test "should combine employer and title" <|
                     \_ ->
                         jobDescriptionWhereTimeDoesNotMatter job
                             |> Query.fromHtml
-                            |> Query.find [ classes [ "col-md-9", "push-md-3" ] ]
+                            |> Query.find [ classes [ "col-12", "col-md-9" ] ]
                             |> Query.has [ text "Software-Engineer bei Navigon AG" ]
 
                 , describe "tasks"

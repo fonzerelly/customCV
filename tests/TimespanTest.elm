@@ -14,7 +14,7 @@ suite =
         createDate str =
             fromString str |> Result.withDefault (Date.fromTime 0)
 
-        timespan = Timespan (createDate "1/1/2004") (createDate "12/31/2008")
+        timespan = Timespan (createDate "1/1/2004") (Just <| createDate "12/31/2008")
     in
         describe "Timespan"
         [ describe "renderTimespan" 
@@ -48,28 +48,17 @@ suite =
                             startDate = createDate "10/01/2008"
                         in
                             Expect.equal "10/2008 - 12/2008"
-                                (renderTimespan currentDate (Timespan startDate (createDate "12/31/2008")))
+                                (renderTimespan currentDate (Timespan startDate (Just <| createDate "12/31/2008")))
                 ],
 
-                describe "when Timespan ends at the same date as the currentDate" <|
-                [ test "should render \"heute\" instead of date" <|
-                    \_ -> 
-                        let
-                            currentDate = createDate "12/31/2008"
-                        in
-                            Expect.equal "2004 - heute"
-                                (renderTimespan currentDate timespan)
-                ]
-            ]
-        , describe "renderTimespan2" <|
-            [ describe "when Timespan end is Nothing" <|
+                describe "when Timespan end is Nothing" <|
                 [ test "should render \"heute\" instead of date" <|
                     \_ ->
                         let
                             currentDate = createDate "12/31/2008"
                         in
                             Expect.equal "2004 - heute"
-                                (renderTimespan2 currentDate {timespan| end = Maybe.Nothing})
+                                (renderTimespan currentDate {timespan| end = Maybe.Nothing})
                 ]
             ]
         ]
