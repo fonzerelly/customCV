@@ -1,0 +1,31 @@
+{
+    "title": "Auslandsaufenthalte",
+    "liveSections": [
+        {
+            "timespans": [
+                {
+                    "start": "2007-03-01T00:00:00.000+01:00",
+                    "end": null
+                }
+            ],
+            "descriptions": [
+                "Technische Unterstützung des US-Standorts von Navigon vor Ort in Chicago"
+            ]
+        },
+        {
+            "timespans": [
+                {
+                    "start": "1992-06-01T00:00:00.000+02:00",
+                    "end": "1992-06-30T00:00:00.000+02:00"
+                },
+                {
+                    "start": "1993-07-01T00:00:00.000+02:00",
+                    "end": "1993-08-18T00:00:00.000+02:00"
+                }
+            ],
+            "descriptions": [
+                "Sparchschule des Jugendwerks der Arbeiterwohlfahrt in Bournemouth, England"
+            ]
+        }
+    ]
+}

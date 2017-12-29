@@ -13,6 +13,7 @@ import Json.Decode as Decode
 import JobDescription exposing (..)
 import JobApplication exposing (..)
 import Education exposing (..)
+import Misc exposing (..)
 import Platform.Cmd exposing (..)
 
 
@@ -34,15 +35,18 @@ createDate str =
 type Msg
     = JobsLoaded (Result Http.Error (List Job))
     | EdusLoaded (Result Http.Error (List Education))
+    | MiscLoaded (Result Http.Error (List Misc))
     | SetDate (Maybe Date)
     | JobMsg JobDescription.Msg
     | EduMsg Education.Msg
+    | MiscMsg Misc.Msg
 
 
 type alias Model =
     { currentDate : Maybe Date
     , jobs : List Job
     , edus : List Education
+    , misc : List Misc
     , err : String
     }
 
@@ -76,6 +80,7 @@ init =
                 Nothing
                 []
                 []
+                []
                 ""
 
         _ =
@@ -85,6 +90,7 @@ init =
             [ now
             , ( triggerCollectingDataFromApplication EdusLoaded .educationLinks educationDecoder )
             , ( triggerCollectingDataFromApplication JobsLoaded .jobLinks jobDecoder )
+            , ( triggerCollectingDataFromApplication MiscLoaded .miscLinks miscDecoder )
             ]
         )
 
@@ -116,10 +122,19 @@ update msg model =
             EdusLoaded (Err errors) ->
                 ( { model | err = (toString errors) }, Cmd.none )
 
+            MiscLoaded (Ok misc) ->
+                ( { model | misc = misc}, Cmd.none )
+
+            MiscLoaded (Err errors) ->
+                ( { model | err = (toString errors)}, Cmd.none )
+
             JobMsg msg ->
                 ( model, Cmd.none )
 
             EduMsg msg ->
+                ( model, Cmd.none )
+
+            MiscMsg msg ->
                 ( model, Cmd.none )
                 
             SetDate maybeDate ->
@@ -139,6 +154,12 @@ view model =
         , case model.currentDate of
             Just date ->
                 Html.map EduMsg (div [] (List.map (educationView date) model.edus))
+
+            Nothing ->
+                text ""
+        , case model.currentDate of
+            Just date ->
+                Html.map MiscMsg (div [] (List.map (miscView date) model.misc))
 
             Nothing ->
                 text ""

@@ -5,5 +5,8 @@
     ],
     "educationLinks": [
         "data/education/tu-ilmenau.json"
+    ],
+    "miscLinks": [
+        "data/misc/auslandsaufenthalte.json"
     ]
 }

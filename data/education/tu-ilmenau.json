@@ -1,0 +1,20 @@
+{
+    "start": "1998-10-01T00:00:00.000+02:00",
+    "end": "2004-09-30T00:00:00.000+02:00",
+    "site": "TU-Ilmenau",
+    "course": "Medientechnologie",
+    "graduation": "Diplom Ingenieur (Medientechnologie)",
+    "grade": 2.1,
+    "works": [
+        {
+            "kind": "DIPLOMARBEIT",
+            "title": "Erarbeitung einer Lernsoftware zum Themenkreis der Kommutierungssysteme von Kommutatormotoren"
+        }
+    ],
+    "focals": [
+        "Computergraphik",
+        "Bildverarbeitung",
+        "Internettechnologien",
+        "Applikationsprogrammierung"
+    ]
+}
