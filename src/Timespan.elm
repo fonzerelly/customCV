@@ -19,17 +19,22 @@ renderTimespan currentDate timespan =
         concatByDash start end =
             start ++ " - " ++ end
 
+        monthToString: Month -> String
+        monthToString m =
+            let
+                monthNum = monthNumberFromMonth m
+            in
+                if monthNum < 10 then "0" ++ toString monthNum else toString monthNum
+
         monthYearToString: Date -> String
         monthYearToString d =
-            let
-                monthToString: Month -> String
-                monthToString m =
-                    let
-                        monthNum = monthNumberFromMonth m
-                    in
-                        if monthNum < 10 then "0" ++ toString monthNum else toString monthNum
-            in
                 (monthToString <| month d) ++ "/" ++ (yearToString d)
+
+        maybeMonthYearToString: Maybe Date -> String
+        maybeMonthYearToString maybeDate =
+            case maybeDate of
+                Just date -> monthYearToString date
+                Nothing -> "heute"
 
         toDateTime: Date -> DateTime
         toDateTime date = dateTime { zero| year = (year date), month = (monthNumberFromMonth <| month date), day = (day date) }
@@ -44,5 +49,24 @@ renderTimespan currentDate timespan =
                         if deltaSinceDate.months > 12 then yearToString date else monthYearToString date
 
                 Nothing -> "heute"
+        
+        maybeSameYear = Maybe.map2 (\start end -> (year start) == (year end)) (Just timespan.start) timespan.end 
+        maybeSameMonth = Maybe.map2 (\start end -> (month start) == (month end)) (Just timespan.start) timespan.end
+
+        defaultResult = concatByDash (formatDate <| Just timespan.start) (formatDate timespan.end)
     in
-        concatByDash (formatDate <| Just timespan.start) (formatDate timespan.end)
+        case maybeSameYear of
+            Just sameYear ->
+                if sameYear then
+                    case maybeSameMonth of
+                        Just sameMonth ->
+                            if sameMonth then
+                                maybeMonthYearToString timespan.end
+                            else
+                                concatByDash (monthToString <| month timespan.start) (maybeMonthYearToString timespan.end)
+                        Nothing ->
+                            defaultResult
+                else
+                    defaultResult
+            Nothing -> 
+                defaultResult
