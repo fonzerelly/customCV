@@ -1,4 +1,8 @@
 {
+    "letterParagraphs": [
+        "Sehr geehrte Damen und Herren,",
+        "ich bin der tollste Hengst unter der Sonne. Deshalb sollten Sie mich einstellen..."
+    ],
     "jobLinks": [
         "data/job/elektrobit.json",
         "data/job/navigon.json"

@@ -26,7 +26,7 @@ suite =
                         (createDate "3/1/2007")
                         Nothing
                     ]
-                    [ "Teschnische Unterstützung des US-Standorts von Navigon vor Ort in Chicago"
+                    [ "Technische Unterstützung des US-Standorts von Navigon vor Ort in Chicago"
                     ]
                 , LiveSection
                     [ Timespan
@@ -164,7 +164,7 @@ suite =
                 }
             ],
             "descriptions": [
-                "Teschnische Unterstützung des US-Standorts von Navigon vor Ort in Chicago"
+                "Technische Unterstützung des US-Standorts von Navigon vor Ort in Chicago"
             ]
         },
         {

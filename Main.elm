@@ -36,7 +36,9 @@ type Msg
     = JobsLoaded (Result Http.Error (List Job))
     | EdusLoaded (Result Http.Error (List Education))
     | MiscLoaded (Result Http.Error (List Misc))
+    | AppLoaded (Result Http.Error JobApplication)
     | SetDate (Maybe Date)
+    | AppMsg JobApplication.Msg
     | JobMsg JobDescription.Msg
     | EduMsg Education.Msg
     | MiscMsg Misc.Msg
@@ -44,6 +46,7 @@ type Msg
 
 type alias Model =
     { currentDate : Maybe Date
+    , app : JobApplication
     , jobs : List Job
     , edus : List Education
     , misc : List Misc
@@ -78,6 +81,12 @@ init =
         model =
             Model
                 Nothing
+                ( JobApplication
+                    ["Herzlich Willkommen auf meiner Homepage"]
+                    []
+                    []
+                    []
+                )
                 []
                 []
                 []
@@ -88,6 +97,7 @@ init =
     in
         ( model, batch
             [ now
+            , ( Task.attempt AppLoaded ) <| (loadData applicationDecoder "data/application/datev.json")
             , ( triggerCollectingDataFromApplication EdusLoaded .educationLinks educationDecoder )
             , ( triggerCollectingDataFromApplication JobsLoaded .jobLinks jobDecoder )
             , ( triggerCollectingDataFromApplication MiscLoaded .miscLinks miscDecoder )
@@ -107,6 +117,12 @@ update msg model =
             Debug.log "update msg: " <| (toString msg)
     in
         case msg of
+            AppLoaded (Ok application) ->
+                ( {model | app = application }, Cmd.none )
+
+            AppLoaded (Err errors) ->
+                ( { model | err = (toString errors) }, Cmd.none )
+
             JobsLoaded (Ok jobs) ->
                 ( { model | jobs = jobs }, Cmd.none )
 
@@ -128,6 +144,9 @@ update msg model =
             MiscLoaded (Err errors) ->
                 ( { model | err = (toString errors)}, Cmd.none )
 
+            AppMsg msg ->
+                ( model, Cmd.none )
+
             JobMsg msg ->
                 ( model, Cmd.none )
 
@@ -145,6 +164,7 @@ view : Model -> Html Msg
 view model =
     Grid.container []
         [ CDN.stylesheet
+        , Html.map AppMsg (div [] [ applicationView model.app ])
         , case model.currentDate of
             Just date ->
                 Html.map JobMsg (div [] (List.map (jobDescription date) model.jobs))
