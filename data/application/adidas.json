@@ -1,0 +1,15 @@
+{
+    "letterParagraphs": [
+        "Sehr geehrte Damen und Herren,",
+        "sportlich ist mein zweiter vorname..."
+    ],
+    "jobLinks": [
+        "data/job/elektrobit.json"
+    ],
+    "educationLinks": [
+        "data/education/tu-ilmenau.json"
+    ],
+    "miscLinks": [
+        "data/misc/auslandsaufenthalte.json"
+    ]
+}

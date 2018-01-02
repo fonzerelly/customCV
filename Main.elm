@@ -15,11 +15,11 @@ import JobApplication exposing (..)
 import Education exposing (..)
 import Misc exposing (..)
 import Platform.Cmd exposing (..)
-
-
-main : Program Never Model Msg
+import Navigation
+import UrlParser as Url exposing ((</>), s, string )
+-- main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program UrlChange
         { init = init
         , view = view
         , update = update
@@ -42,6 +42,7 @@ type Msg
     | JobMsg JobDescription.Msg
     | EduMsg Education.Msg
     | MiscMsg Misc.Msg
+    | UrlChange Navigation.Location
 
 
 type alias Model =
@@ -53,11 +54,11 @@ type alias Model =
     , err : String
     }
 
-triggerCollectingDataFromApplication msg getter specificDecoder =
+triggerCollectingDataFromApplication msg getter specificDecoder appUrl =
     let
-        _ = Debug.log "triggerCollectingDataFromApplication" "###"
+        _ = Debug.log "triggerCollectingDataFromApplication" appUrl
     in
-        loadData applicationDecoder "data/application/datev.json"
+        loadData applicationDecoder appUrl
             |> Task.andThen (createDataTasks getter specificDecoder)
             |> Task.attempt msg
 
@@ -68,16 +69,22 @@ createDataTasks getter specificDecoder application =
     in
         Task.sequence ( List.map (loadData specificDecoder) (getter application) )
 
-
 loadData : Decode.Decoder a -> String -> Task.Task Error a
 loadData specificDecoder url =
     specificDecoder
         |> Http.get url
         |> Http.toTask
 
-init : ( Model, Cmd Msg )
-init =
+
+getApplication: Navigation.Location -> String
+getApplication location =
+    String.dropLeft 1 location.search
+
+init : Navigation.Location -> ( Model, Cmd Msg )
+init location =
     let
+        appUrl = "data/application/"++ getApplication location ++".json"
+
         model =
             Model
                 Nothing
@@ -97,13 +104,12 @@ init =
     in
         ( model, batch
             [ now
-            , ( Task.attempt AppLoaded ) <| (loadData applicationDecoder "data/application/datev.json")
-            , ( triggerCollectingDataFromApplication EdusLoaded .educationLinks educationDecoder )
-            , ( triggerCollectingDataFromApplication JobsLoaded .jobLinks jobDecoder )
-            , ( triggerCollectingDataFromApplication MiscLoaded .miscLinks miscDecoder )
+            , ( Task.attempt AppLoaded ) <| (loadData applicationDecoder appUrl)
+            , ( triggerCollectingDataFromApplication EdusLoaded .educationLinks educationDecoder appUrl )
+            , ( triggerCollectingDataFromApplication JobsLoaded .jobLinks jobDecoder appUrl )
+            , ( triggerCollectingDataFromApplication MiscLoaded .miscLinks miscDecoder appUrl )
             ]
         )
-
 
 now : Cmd Msg
 now =
@@ -158,6 +164,9 @@ update msg model =
                 
             SetDate maybeDate ->
                 ( { model | currentDate = maybeDate }, Cmd.none )
+
+            UrlChange location ->
+                (model, Cmd.none)
 
 
 view : Model -> Html Msg
